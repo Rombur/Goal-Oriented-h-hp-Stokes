@@ -1,0 +1,17 @@
+set Verbose = false
+set Example = 2
+set Quadrature = GaussLobatto
+set Refinement = h
+set Goal oriented = true
+set Max degree = 10
+set Max n cycles = 30
+set Theta = 1.0
+set Tolerance = 1e-15
+set Dual source = exp(-(10)^4*((x-0.5)^2 +(y-0.5)^2));exp(-(10)^4*((x-0.5)^2 +(y-0.5)^2));0.
+
+
+
+
+
+
+

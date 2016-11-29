@@ -1,0 +1,17 @@
+set Verbose = false
+set Example = 3
+set Quadrature = GaussLobatto
+set Refinement = h
+set Goal oriented = true
+set Max degree = 10
+set Max n cycles = 30
+set Theta = 0.99
+set Tolerance = 1e-15
+set Dual source = if(x>0.5 && y>0.5, 1., 0.); if(x>0.5 && y>0.5, 1., 0.);0.
+
+
+
+
+
+
+
