@@ -1799,8 +1799,6 @@ double StokesProblem<dim>::squared_error_estimator_on_two_layer_patch(
         residual_term-0.;
       else
         {
-          double const scaling = pow((cell->diameter())/(cell->get_fe().degree), 2.0);
-
           for (unsigned int q=0; q<n_q_points; ++q)
             {
 
@@ -2153,18 +2151,14 @@ void StokesProblem<dim>::mark_cells_goal_oriented(
   // Compute go_error_estimator
   std::vector<std::tuple<double, double, DoFHandler_active_cell_iterator>> go_error_estimator(
         go_error_estimator_square.size());
-  double sum1=0.;
   for (unsigned int i=0; i<go_error_estimator.size(); ++i)
     {
       std::get<0>(go_error_estimator[i]) = std::sqrt(go_error_estimator_square[i].first);
-      sum1+= std::sqrt(go_error_estimator_square[i].first);
-      //TODO check that the order is the same
       std::get<1>(go_error_estimator[i]) = est_per_cell[i];
       std::get<2>(go_error_estimator[i]) = go_error_estimator_square[i].second;
       go_est_per_cell[i] = std::sqrt(go_error_estimator_square[i].first);
     }
 
-  std::cout<< "sum1 = "<< sum1 <<std::endl;
   // Sort the go_error_estimator from the largest to smallest value.
   std::sort(go_error_estimator.begin(), go_error_estimator.end(),
             std::bind(&StokesProblem<dim>::sort_decreasing_order_tuple, this,
