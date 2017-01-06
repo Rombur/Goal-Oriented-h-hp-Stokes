@@ -15,7 +15,8 @@ using namespace dealii;
 // Problem: Convergence without the Inf-Sup Condition"
 // Example 5 is the same as example 3 but in 3D. This example is for debugging
 // purpose
-enum EXAMPLE {example_1,example_2,example_3,example_4,example_5};
+// Example 6 is a bended pipe
+enum EXAMPLE {example_1,example_2,example_3,example_4,example_5,example_6};
 enum QUADRATURE {gauss_legendre,gauss_lobatto};
 enum REFINEMENT {h_refine,p_refine,hp_refine};
 

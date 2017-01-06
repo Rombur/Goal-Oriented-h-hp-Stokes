@@ -60,6 +60,13 @@ StokesProblem<dim>::StokesProblem(Parameters const &parameters):
 
       break;
     }
+    case (example_6) :
+    {
+      exact_solution.reset(new ExactSolutionEx6<dim>());
+      rhs_function.reset(new RightHandSideEx6<dim>());
+
+      break;
+    }
     default :
     {
       AssertThrow(false, ExcMessage("Unknow Example"));
@@ -160,6 +167,53 @@ void StokesProblem<dim>::generate_mesh()
     {
       GridGenerator::hyper_cube(triangulation, -1, 1);
       triangulation.refine_global(2);
+    }
+  else if (example==example_6)
+    {
+      // Bottom left block
+      Triangulation<dim> left_triangulation;
+      std::vector<unsigned int> left_repetitions(dim,1.);
+      left_repetitions[0] = 2;
+      Point<dim> left_p1;
+      left_p1(0) = -2.5;
+      left_p1(1) = -1.;
+      Point<dim> left_p2;
+      left_p2(0) = -0.5;
+      left_p2(1) = 0.;
+      GridGenerator::subdivided_hyper_rectangle(left_triangulation,
+                                                left_repetitions, left_p1, left_p2);
+      // Upper middle block
+      Triangulation<dim> middle_triangulation;
+      std::vector<unsigned int> middle_repetitions(dim,1.);
+      middle_repetitions[0] = 3;
+      Point<dim> middle_p1;
+      middle_p1(0) = -1.5;
+      middle_p1(1) = 0.;
+      Point<dim> middle_p2;
+      middle_p2(0) = 1.5;
+      middle_p2(1) = 1.;
+      GridGenerator::subdivided_hyper_rectangle(middle_triangulation,
+                                                middle_repetitions, middle_p1, middle_p2);
+      // Bottom right block
+      Triangulation<dim> right_triangulation;
+      std::vector<unsigned int> right_repetitions(dim,1.);
+      right_repetitions[0] = 2;
+      Point<dim> right_p1;
+      right_p1(0) = 0.5;
+      right_p1(1) = -1.;
+      Point<dim> right_p2;
+      right_p2(0) = 2.5;
+      right_p2(1) = 0.;
+      GridGenerator::subdivided_hyper_rectangle(right_triangulation,
+                                                right_repetitions, right_p1, right_p2);
+
+      // Merge the triangulations
+      Triangulation<dim> tmp_triangulation;
+      GridGenerator::merge_triangulations(left_triangulation, middle_triangulation,
+                                          tmp_triangulation);
+      GridGenerator::merge_triangulations(tmp_triangulation, right_triangulation,
+                                          triangulation);
+      triangulation.refine_global(1);
     }
   else
     {
@@ -297,6 +351,10 @@ void StokesProblem<dim>::setup_system(PRIMALDUAL primal_dual)
       dual_solution.block(0).reinit(n_u);
       dual_solution.block(1).reinit(n_p);
       dual_solution.collect_sizes();
+      dual_source_vector.reinit(2);
+      dual_source_vector.block(0).reinit(n_u);
+      dual_source_vector.block(1).reinit(n_p);
+      dual_source_vector.collect_sizes();
     }
   system_rhs.reinit(2);
   system_rhs.block(0).reinit (n_u);
@@ -390,6 +448,10 @@ void StokesProblem<dim>::assemble_system(PRIMALDUAL primal_dual)
       cell->get_dof_indices (local_dof_indices);
       constraints.distribute_local_to_global(local_matrix, local_rhs,
                                              local_dof_indices, system_matrix, system_rhs);
+      // Use to output the dual source
+      if (primal_dual==dual)
+        constraints.distribute_local_to_global(local_rhs, local_dof_indices,
+                                               dual_source_vector);
     }
 }
 
@@ -2249,6 +2311,9 @@ void StokesProblem<dim>::output_results (const unsigned int cycle)
   std::vector<std::string> dual_solution_names (dim, "dual_velocity");
   dual_solution_names.push_back ("dual_pressure");
 
+  std::vector<std::string> dual_source_names (dim, "dual_source_velocity");
+  dual_source_names.push_back ("dual_source_pressure");
+
   std::vector<DataComponentInterpretation::DataComponentInterpretation>
   data_component_interpretation
   (dim, DataComponentInterpretation::component_is_part_of_vector);
@@ -2260,8 +2325,13 @@ void StokesProblem<dim>::output_results (const unsigned int cycle)
   data_out.add_data_vector(solution, solution_names,
                            DataOut<dim,hp::DoFHandler<dim>>::type_dof_data, data_component_interpretation);
 
-  data_out.add_data_vector(dual_solution, dual_solution_names,
-                           DataOut<dim,hp::DoFHandler<dim>>::type_dof_data, data_component_interpretation);
+  // Only output the dual solution for goal oriented problem
+  if (dual_solution.size() != 0)
+    data_out.add_data_vector(dual_solution, dual_solution_names,
+                             DataOut<dim,hp::DoFHandler<dim>>::type_dof_data, data_component_interpretation);
+  if (dual_source_vector.size() != 0)
+    data_out.add_data_vector(dual_source_vector, dual_source_names,
+                             DataOut<dim,hp::DoFHandler<dim>>::type_dof_data, data_component_interpretation);
 
 
   data_out.add_data_vector (marked_cells, "marked_cells");

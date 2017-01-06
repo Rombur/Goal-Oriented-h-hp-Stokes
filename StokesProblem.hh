@@ -47,12 +47,14 @@
 #include "ExactSolutionEx3.hh"
 #include "ExactSolutionEx4.hh"
 #include "ExactSolutionEx5.hh"
+#include "ExactSolutionEx6.hh"
 #include "Parameters.hh"
 #include "RightHandSideEx1.hh"
 #include "RightHandSideEx2.hh"
 #include "RightHandSideEx3.hh"
 #include "RightHandSideEx4.hh"
 #include "RightHandSideEx5.hh"
+#include "RightHandSideEx6.hh"
 #include "ScratchData.hh"
 
 using namespace dealii;
@@ -217,6 +219,7 @@ private:
   BlockVector<double> solution;
   BlockVector<double> system_rhs;
   BlockVector<double> dual_solution;
+  BlockVector<double> dual_source_vector;
 
   bool verbose;
   EXAMPLE example;
